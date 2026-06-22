@@ -1,0 +1,13 @@
+kind = "api"
+previewPath = "/triage-api"
+title = "SmartCard Triage API"
+version = "1.0.0"
+id = "triage-api-python"
+
+[[services]]
+localPort = 8000
+name = "Triage API"
+paths = ["/triage-api"]
+
+[services.development]
+run = "cd smartcard-bot && python bot.py"

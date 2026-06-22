@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
+import uvicorn
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
@@ -10,12 +11,15 @@ from config import TELEGRAM_BOT_TOKEN, TELEGRAM_ALERT_GROUP_ID, TRIAGE_STATUS
 from keyboards import main_menu
 from triage import classify_text, MENU_RESPONSES
 from sheets import log_interaction
+from api import app as fastapi_app
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
+
+FASTAPI_PORT = 8000
 
 
 def _now() -> str:
@@ -129,9 +133,23 @@ async def handle_menu_callback(callback: CallbackQuery):
     await callback.message.answer(item["reply"], parse_mode="HTML", reply_markup=main_menu())
 
 
+async def run_fastapi():
+    config = uvicorn.Config(
+        app=fastapi_app,
+        host="0.0.0.0",
+        port=FASTAPI_PORT,
+        log_level="info",
+    )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
 async def main():
-    logger.info("SmartCard Triage Bot starting...")
-    await dp.start_polling(bot)
+    logger.info(f"SmartCard Triage Bot starting (Telegram + FastAPI on :{FASTAPI_PORT})...")
+    await asyncio.gather(
+        dp.start_polling(bot),
+        run_fastapi(),
+    )
 
 
 if __name__ == "__main__":

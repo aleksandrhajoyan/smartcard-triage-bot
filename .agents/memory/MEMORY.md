@@ -1,0 +1,1 @@
+- [FastAPI root_path ASGI behavior](fastapi-root-path.md) — setting root_path in FastAPI() strips the prefix before route matching; routes with that prefix return 404.

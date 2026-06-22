@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 dependencies = [
     "aiogram==3.13.1",
     "aiohttp==3.10.10",
+    "fastapi==0.115.5",
     "google-auth==2.35.0",
     "gspread==6.1.2",
+    "python-dotenv==1.0.1",
+    "uvicorn==0.32.0",
 ]
