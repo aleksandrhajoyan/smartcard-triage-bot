@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { logout } from "@/pages/LoginPage";
 
 interface LogEntry {
   timestamp: string;
@@ -131,6 +132,35 @@ export default function Dashboard() {
     fetchData(true);
   };
 
+  function exportCSV() {
+    if (logs.length === 0) return;
+    const headers = ["Timestamp", "User ID", "Username", "Full Name", "Status", "Message / Action"];
+    const rows = logs.map((r) => [
+      r.timestamp,
+      r.user_id,
+      r.username,
+      r.full_name,
+      STATUS_CONFIG[r.status]?.label ?? r.status,
+      r.menu_action ? `[Menu] ${r.menu_action}` : r.message,
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const ts = new Date().toISOString().slice(0, 16).replace("T", "_");
+    a.download = `triage_export_${ts}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleLogout() {
+    logout();
+    window.location.reload();
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -143,12 +173,20 @@ export default function Dashboard() {
               <p className="text-sidebar-foreground/60 text-xs">Support Operations Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {lastRefresh && (
-              <span className="text-sidebar-foreground/50 text-xs hidden sm:block">
+              <span className="text-sidebar-foreground/50 text-xs hidden sm:block mr-1">
                 Updated {lastRefresh.toLocaleTimeString()}
               </span>
             )}
+            <button
+              onClick={exportCSV}
+              disabled={logs.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Export current view to CSV"
+            >
+              ↓ Export CSV
+            </button>
             <button
               onClick={() => fetchData(true)}
               disabled={refreshing}
@@ -156,6 +194,13 @@ export default function Dashboard() {
             >
               <span className={refreshing ? "animate-spin" : ""}>↻</span>
               Refresh
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-sidebar-accent text-sidebar-foreground/70 text-xs font-medium rounded-md hover:text-white transition-colors"
+              title="Sign out"
+            >
+              ⎋ Sign out
             </button>
           </div>
         </div>

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "@/pages/Dashboard";
+import LoginPage, { isAuthenticated } from "@/pages/LoginPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -15,6 +17,12 @@ function Router() {
 }
 
 function App() {
+  const [authed, setAuthed] = useState(() => isAuthenticated());
+
+  if (!authed) {
+    return <LoginPage onSuccess={() => setAuthed(true)} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
